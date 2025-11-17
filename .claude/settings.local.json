@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(npm create:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(./node_modules/.bin/tailwindcss:*)",
+      "Bash(node:*)",
+      "Bash(npm run dev:*)",
+      "Read(//c/Users/krish/Downloads/**)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "outputStyle": "Explanatory"
+}

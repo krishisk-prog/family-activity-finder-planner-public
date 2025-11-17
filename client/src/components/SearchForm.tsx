@@ -1,0 +1,258 @@
+import { useState, useEffect, FormEvent } from 'react';
+import type { SearchFormData } from '../types/index.ts';
+
+interface SearchFormProps {
+  onSubmit: (data: SearchFormData) => void;
+}
+
+export default function SearchForm({ onSubmit }: SearchFormProps) {
+  const [formData, setFormData] = useState<SearchFormData>({
+    city: '',
+    kidsAges: '',
+    availability: '',
+    maxDistance: '',
+    preferences: '',
+  });
+
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Auto-detect location on component mount
+  useEffect(() => {
+    const detectLocation = async () => {
+      setIsDetectingLocation(true);
+      setLocationError(null);
+
+      // Try GPS geolocation first
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          // GPS Success
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+
+            try {
+              // Reverse geocode GPS coordinates to city name
+              const response = await fetch(
+                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+              );
+
+              if (!response.ok) {
+                throw new Error('Failed to fetch location data');
+              }
+
+              const data = await response.json();
+              const cityName = data.city || data.locality;
+              const stateName = data.principalSubdivision;
+              const locationString = stateName
+                ? `${cityName}, ${stateName}`
+                : cityName;
+
+              setFormData((prev) => ({
+                ...prev,
+                city: locationString,
+              }));
+              setIsDetectingLocation(false);
+            } catch (error) {
+              // GPS worked but reverse geocoding failed, try IP fallback
+              tryIPGeolocation();
+            }
+          },
+          // GPS Error - fall back to IP geolocation
+          () => {
+            tryIPGeolocation();
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 300000,
+          }
+        );
+      } else {
+        // Browser doesn't support geolocation, use IP fallback
+        tryIPGeolocation();
+      }
+    };
+
+    // IP-based geolocation fallback
+    const tryIPGeolocation = async () => {
+      try {
+        const response = await fetch(
+          'https://api.bigdatacloud.net/data/ip-geolocation?key=bdc_2dd7b11fcd0a4ff98ba1ddf5b8bcff07'
+        );
+
+        if (!response.ok) {
+          throw new Error('IP geolocation failed');
+        }
+
+        const data = await response.json();
+        const cityName = data.city || data.locality;
+        const stateName = data.principalSubdivision;
+        const locationString = stateName
+          ? `${cityName}, ${stateName}`
+          : cityName || 'Location unavailable';
+
+        setFormData((prev) => ({
+          ...prev,
+          city: locationString,
+        }));
+        setIsDetectingLocation(false);
+      } catch (error) {
+        setLocationError('Unable to detect location. Please enter manually.');
+        setIsDetectingLocation(false);
+      }
+    };
+
+    detectLocation();
+  }, []); // Run once on mount
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white rounded-lg shadow-md p-6"
+    >
+      <div className="space-y-4">
+        {/* City Input */}
+        <div>
+          <label
+            htmlFor="city"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            City/Location *
+            {isDetectingLocation && (
+              <span className="ml-2 text-sm text-gray-500 font-normal">
+                (Detecting...)
+              </span>
+            )}
+          </label>
+          <input
+            type="text"
+            id="city"
+            name="city"
+            required
+            value={formData.city}
+            onChange={handleChange}
+            placeholder={
+              isDetectingLocation
+                ? 'Detecting your location...'
+                : 'e.g., Seattle, WA'
+            }
+            disabled={isDetectingLocation}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition disabled:bg-gray-50 disabled:cursor-wait"
+          />
+          {locationError && (
+            <p className="mt-1 text-sm text-amber-600" role="alert">
+              {locationError}
+            </p>
+          )}
+          {!isDetectingLocation && formData.city && !locationError && (
+            <p className="mt-1 text-sm text-green-600">
+              ✓ Location detected. You can edit if needed.
+            </p>
+          )}
+        </div>
+
+        {/* Kids Ages Input */}
+        <div>
+          <label
+            htmlFor="kidsAges"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Kids Ages *
+          </label>
+          <input
+            type="text"
+            id="kidsAges"
+            name="kidsAges"
+            required
+            value={formData.kidsAges}
+            onChange={handleChange}
+            placeholder="e.g., 5, 8 or 3-7"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+          />
+        </div>
+
+        {/* Availability Input */}
+        <div>
+          <label
+            htmlFor="availability"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            When Available *
+          </label>
+          <input
+            type="text"
+            id="availability"
+            name="availability"
+            required
+            value={formData.availability}
+            onChange={handleChange}
+            placeholder="e.g., Saturday afternoon"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+          />
+        </div>
+
+        {/* Max Distance Input */}
+        <div>
+          <label
+            htmlFor="maxDistance"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Maximum Distance (miles) *
+          </label>
+          <input
+            type="number"
+            id="maxDistance"
+            name="maxDistance"
+            required
+            min="1"
+            value={formData.maxDistance}
+            onChange={handleChange}
+            placeholder="How far will you drive?"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+          />
+        </div>
+
+        {/* Preferences Input */}
+        <div>
+          <label
+            htmlFor="preferences"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Preferences (Optional)
+          </label>
+          <textarea
+            id="preferences"
+            name="preferences"
+            rows={3}
+            value={formData.preferences}
+            onChange={handleChange}
+            placeholder="e.g., outdoor, educational, budget-friendly"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
+          />
+        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className="w-full bg-primary text-white py-3 px-6 rounded-md font-medium hover:bg-blue-600 transition-colors duration-200 shadow-sm"
+        >
+          Find Activities
+        </button>
+      </div>
+    </form>
+  );
+}
