@@ -2,26 +2,42 @@ import { useState } from 'react';
 import SearchForm from './components/SearchForm';
 import ResultsGrid from './components/ResultsGrid';
 import LoadingState from './components/LoadingState';
+import ErrorState from './components/ErrorState';
 import type { Activity, SearchFormData } from './types/index.ts';
-import { dummyActivities } from './data/dummyActivities';
+import { searchActivities } from './services/api';
 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = (formData: SearchFormData) => {
+  const handleSearch = async (formData: SearchFormData) => {
     console.log('Search parameters:', formData);
 
-    // Show loading state
     setIsLoading(true);
     setHasSearched(true);
+    setError(null);
 
-    // Simulate API call with 1.5 second delay
-    setTimeout(() => {
-      setActivities(dummyActivities);
+    try {
+      const results = await searchActivities(formData);
+      setActivities(results);
+    } catch (err) {
+      console.error('Search failed:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to find activities. Please try again.'
+      );
+      setActivities([]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    setHasSearched(false);
   };
 
   return (
@@ -50,8 +66,9 @@ function App() {
         {/* Right Pane - Results (60-70% width on desktop) */}
         <main className="flex-1 px-4 py-6 sm:px-6">
           {isLoading && <LoadingState />}
-          {!isLoading && hasSearched && <ResultsGrid activities={activities} />}
-          {!hasSearched && (
+          {error && <ErrorState message={error} onRetry={handleRetry} />}
+          {!isLoading && !error && hasSearched && <ResultsGrid activities={activities} />}
+          {!hasSearched && !error && (
             <div className="text-center py-16 text-gray-500">
               <p className="text-lg">
                 Enter your search criteria to find family activities
