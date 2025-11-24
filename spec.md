@@ -19,17 +19,22 @@ A web application that helps parents discover family-friendly activities based o
 ### Output Format
 
 Return **top 20 activity recommendations**, each with:
-- **Bold title** - Name of the activity/venue
+- **Bold title** - Name of the activity/event (specific, not just venue)
 - **Emoji** - Contextually appropriate emoji
 - **Activity link** - Direct link to the venue/activity website
 - **Google Maps link** - Directions from user's current location
+- **Apple Maps link** - Directions for iOS users
 - **Description** - 2-4 sentences explaining why it's a good fit
+- **Event Date** - When the event runs (e.g., "Nov 15 - Jan 5, 2025") or "Ongoing"
+- **Event Type** - One of: seasonal, exhibition, show, class, permanent
 
 ### Example Output
 
-**🎨 Seattle Children's Museum**
-[Website](https://example.com) | [Directions](https://maps.google.com/...)
-Perfect for your 5 and 8 year olds! This hands-on museum features interactive exhibits about science, culture, and creativity. Open Saturday afternoons with plenty of age-appropriate activities. Typically takes 2-3 hours to explore.
+**🏮 WildLanterns at Woodland Park Zoo**
+[Website](https://www.zoo.org/wildlanterns) | [Google Maps](https://maps.google.com/...) | [Apple Maps](https://maps.apple.com/...)
+📅 Nov 15, 2024 - Jan 19, 2025 | Seasonal & Holiday
+
+A magical lantern festival featuring illuminated animal sculptures. Perfect for your 6-year-old with interactive light displays. Runs evenings only, allow 1.5-2 hours to explore all the exhibits.
 
 ---
 
@@ -50,12 +55,21 @@ Perfect for your 5 and 8 year olds! This hands-on museum features interactive ex
 ### APIs & Tools
 - **Claude Messages API (Sonnet 4.5)**
   - With `web_search_20250305` tool enabled
+  - **Streaming API** for long-running web searches
+  - **Prompt caching** for 90% cost reduction
+  - **Exponential backoff** for rate limit handling
   - Pricing: $10 per 1,000 searches + token costs
 - **BigDataCloud Reverse Geocoding API**
   - Free client-side API for converting GPS coordinates to city names
   - Also provides IP-based geolocation fallback
   - No API key required
 - **Google Maps API** (for directions links)
+- **Apple Maps API** (for iOS directions links)
+
+### API Features
+- **Time-sensitive event discovery** - Prompts include current date/season
+- **Event type filtering** - Filter by seasonal, exhibition, show, class, permanent
+- **Event dates in response** - Each activity includes event date range
 
 ### Development Tools
 - **Nodemon** - Auto-restart during development

@@ -7,8 +7,13 @@ AI-powered family activity recommendations using Claude API with web search.
 - 🎯 Smart activity recommendations based on location, kids' ages, and preferences
 - 🗺️ Both Google Maps and Apple Maps directions
 - 📱 Responsive design (mobile + desktop)
-- 🌐 Real-time web search for current activities
+- 🌐 Real-time web search for current activities and events
 - 📍 Auto-detect location using browser geolocation
+- 📅 **Time-sensitive event discovery** - Finds current events, not just generic venues
+- 🏷️ **Event type filtering** - Filter by seasonal, exhibitions, shows, classes, or permanent attractions
+- 💾 **Prompt caching** - 90% cost reduction on repeated requests
+- 🔄 **Exponential backoff** - Automatic retry on rate limits
+- 📡 **Streaming API** - Prevents connection timeouts for web search
 
 ## Tech Stack
 
@@ -121,9 +126,12 @@ Search for family activities.
   "kidsAges": "5, 8",
   "availability": "Saturday afternoon",
   "maxDistance": "25",
-  "preferences": "outdoor, educational"
+  "preferences": "outdoor, educational",
+  "eventTypes": ["seasonal", "exhibition"]
 }
 ```
+
+**Note:** `eventTypes` is optional. Valid values: `seasonal`, `exhibition`, `show`, `class`, `permanent`
 
 **Response:**
 ```json
@@ -133,13 +141,15 @@ Search for family activities.
   "activities": [
     {
       "id": 1,
-      "name": "Woodland Park Zoo",
-      "emoji": "🦁",
-      "website": "https://...",
+      "name": "WildLanterns at Woodland Park Zoo",
+      "emoji": "🏮",
+      "website": "https://www.zoo.org/wildlanterns",
       "address": "5500 Phinney Ave N, Seattle, WA 98103",
       "googleMapsLink": "https://www.google.com/maps/dir/...",
       "appleMapsLink": "https://maps.apple.com/...",
-      "description": "Perfect for your 5 and 8 year olds..."
+      "description": "A magical lantern festival featuring illuminated animal sculptures...",
+      "eventDate": "Nov 15, 2024 - Jan 19, 2025",
+      "eventType": "seasonal"
     }
   ]
 }

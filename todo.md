@@ -1,3 +1,55 @@
+# Session Updates - November 2024
+
+## Completed: API Improvements & Event Discovery
+
+### ✅ Web Search Integration
+- Enabled Anthropic's `web_search_20250305` tool
+- Configured with `max_uses: 5` for comprehensive event searches
+- Fixed connection timeout issues using **streaming API** (`anthropic.messages.stream()`)
+
+### ✅ Exponential Backoff for Rate Limits
+- Implemented automatic retry logic for 429 (rate limit) errors
+- Respects `retry-after` header from API
+- Configurable: 5 retries, 1s base delay, 60s max delay
+- Added random jitter to prevent thundering herd
+
+### ✅ Prompt Caching
+- Added `cache_control: { type: 'ephemeral' }` to system prompt
+- 90% cost reduction on repeated requests
+- Extended system prompt to meet 1,024 token minimum for caching
+
+### ✅ Time-Sensitive Event Discovery
+- Added current date context to prompts
+- Claude now searches for **current events**, not just venues
+- Prompts include: date, month, year, season
+- Results include event dates (e.g., "Nov 15 - Jan 5, 2025")
+
+### ✅ Event Type Filtering
+- **Backend:** Added `eventTypes` parameter to search API
+- **Backend:** Added `eventDate` and `eventType` fields to response
+- **Frontend:** Added checkbox filter for event types
+- **Frontend:** Added color-coded badges on activity cards
+
+### Event Types:
+| Type | Description | Badge Color |
+|------|-------------|-------------|
+| `seasonal` | Holiday events, festivals | Orange |
+| `exhibition` | Museum exhibits, art shows | Purple |
+| `show` | Performances, concerts | Pink |
+| `class` | Workshops, camps | Green |
+| `permanent` | Ongoing attractions | Gray |
+
+### Files Modified:
+- `backend/src/services/claudeService.ts` - Streaming, caching, event prompts
+- `backend/src/services/activityFormatter.ts` - New fields
+- `backend/src/routes/search.ts` - Event types filter
+- `backend/src/server.ts` - Network host binding
+- `client/src/types/index.ts` - Event types
+- `client/src/components/SearchForm.tsx` - Filter checkboxes
+- `client/src/components/ActivityCard.tsx` - Event badges
+
+---
+
 # Milestone 1 Tasks - Family Activity Finder
 
 ## Goal: Build UI with Dummy Data (4-6 hours)

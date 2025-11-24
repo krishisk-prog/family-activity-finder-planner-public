@@ -1,5 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
-import type { SearchFormData } from '../types/index.ts';
+import type { SearchFormData, EventType } from '../types/index.ts';
+import { EVENT_TYPES, EVENT_TYPE_LABELS } from '../types/index.ts';
 
 interface SearchFormProps {
   onSubmit: (data: SearchFormData) => void;
@@ -12,6 +13,7 @@ export default function SearchForm({ onSubmit }: SearchFormProps) {
     availability: '',
     maxDistance: '',
     preferences: '',
+    eventTypes: [], // Empty means show all types
   });
 
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
@@ -116,6 +118,20 @@ export default function SearchForm({ onSubmit }: SearchFormProps) {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleEventTypeChange = (eventType: EventType) => {
+    setFormData((prev) => {
+      const currentTypes = prev.eventTypes || [];
+      const isSelected = currentTypes.includes(eventType);
+
+      return {
+        ...prev,
+        eventTypes: isSelected
+          ? currentTypes.filter((t) => t !== eventType)
+          : [...currentTypes, eventType],
+      };
     });
   };
 
@@ -224,6 +240,34 @@ export default function SearchForm({ onSubmit }: SearchFormProps) {
             placeholder="How far will you drive?"
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
           />
+        </div>
+
+        {/* Event Type Filter */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Types (Optional)
+          </label>
+          <p className="text-xs text-gray-500 mb-2">
+            Leave empty for all types, or select specific types to filter
+          </p>
+          <div className="space-y-2">
+            {EVENT_TYPES.map((eventType) => (
+              <label
+                key={eventType}
+                className="flex items-center space-x-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={formData.eventTypes?.includes(eventType) || false}
+                  onChange={() => handleEventTypeChange(eventType)}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <span className="text-sm text-gray-700">
+                  {EVENT_TYPE_LABELS[eventType]}
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
 
         {/* Preferences Input */}

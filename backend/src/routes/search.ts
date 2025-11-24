@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { searchActivities, type SearchParams } from '../services/claudeService';
+import { searchActivities, type SearchParams, EVENT_TYPES, type EventType } from '../services/claudeService';
 import { formatActivities } from '../services/activityFormatter';
 
 const router = express.Router();
@@ -7,8 +7,15 @@ const router = express.Router();
 router.post('/search', async (req: Request, res: Response) => {
   console.log('📥 Search request received');
   try {
-    const { city, kidsAges, availability, maxDistance, preferences } = req.body;
-    console.log('📝 Request body:', { city, kidsAges, availability, maxDistance, preferences: preferences || 'none' });
+    const { city, kidsAges, availability, maxDistance, preferences, eventTypes } = req.body;
+    console.log('📝 Request body:', {
+      city,
+      kidsAges,
+      availability,
+      maxDistance,
+      preferences: preferences || 'none',
+      eventTypes: eventTypes || 'all',
+    });
 
     // Validate required fields
     if (!city || !kidsAges || !availability || !maxDistance) {
@@ -28,6 +35,21 @@ router.post('/search', async (req: Request, res: Response) => {
       });
     }
 
+    // Validate eventTypes if provided
+    let validatedEventTypes: EventType[] | undefined;
+    if (eventTypes) {
+      if (!Array.isArray(eventTypes)) {
+        return res.status(400).json({
+          error: 'eventTypes must be an array',
+        });
+      }
+      // Filter to only valid event types
+      validatedEventTypes = eventTypes.filter((type: string) =>
+        EVENT_TYPES.includes(type as EventType)
+      ) as EventType[];
+      console.log(`🎯 Filtering by event types: ${validatedEventTypes.join(', ')}`);
+    }
+
     console.log(`🔍 Searching activities for: ${city}, Kids: ${kidsAges}`);
 
     // Call Claude service
@@ -37,6 +59,7 @@ router.post('/search', async (req: Request, res: Response) => {
       availability,
       maxDistance,
       preferences: preferences || '',
+      eventTypes: validatedEventTypes,
     };
 
     console.log('🤖 Calling Claude service...');
