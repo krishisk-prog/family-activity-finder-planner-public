@@ -75,6 +75,7 @@ A magical lantern festival featuring illuminated animal sculptures. Perfect for 
 - **Nodemon** - Auto-restart during development
 - **Concurrently** - Run frontend + backend simultaneously
 - **ESLint** - Code linting
+- **mkcert** - Generate trusted local SSL certificates for HTTPS development
 
 ---
 
@@ -180,34 +181,30 @@ const tools = [{
 **Goal:** Production-ready application
 
 **Tasks:**
-1. **Error Handling**
-   - Rate limiting on backend
-   - Graceful API failure messages
-   - Input validation (city exists, ages are valid)
 
-2. **UX Improvements**
+1. **Development Environment (Tasks 1-2)**
+   - SSL/HTTPS for local development using mkcert
+   - LAN network accessibility (access from mobile devices on same WiFi)
+
+2. **Backend Polish (Tasks 3-5)**
+   - Response caching for identical searches (10 min TTL)
+   - Input validation and sanitization
+   - Rate limiting (10 requests/min per IP)
+
+3. **Frontend Polish (Tasks 6-8)**
+   - Enhanced loading states with skeleton cards
    - Save last search in localStorage
-   - "Load more" or pagination if >20 results
-   - Filter/sort results (by distance, age fit, etc.)
+   - Improved mobile experience (touch-friendly, collapsible form)
 
-3. **Performance**
-   - Cache Claude responses for identical searches (5-10 min TTL)
-   - Optimize API response time
-   - Compress images if any
-
-4. **Google Maps Integration**
-   - Generate accurate "Directions" links
-   - Optionally: Embed map preview (if using Maps API)
-
-5. **Deployment**
-   - Frontend: Vercel or Netlify
-   - Backend: Railway, Render, or Vercel serverless functions
-   - Environment variables configured
-   - CORS properly set up
+4. **Deployment (Tasks 9-12)**
+   - Deploy frontend to Vercel
+   - Deploy backend to Railway/Render
+   - Production environment configuration (CORS, HTTPS)
+   - Error monitoring and logging (Sentry or similar)
 
 **Deliverable:** Live, deployed application with polished UX
 
-**Time Estimate:** 4-6 hours
+**Time Estimate:** 7-9 hours
 
 ---
 
@@ -298,6 +295,9 @@ NODE_ENV=development
 - [ ] Links work (venue website + directions)
 
 **Milestone 3 Complete When:**
+- [ ] SSL/HTTPS working in local development
+- [ ] LAN network accessibility working
+- [ ] Response caching and rate limiting active
 - [ ] App is deployed and publicly accessible
 - [ ] Error handling works smoothly
 - [ ] Performance is acceptable (<5 second search)

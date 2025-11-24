@@ -1743,39 +1743,45 @@ MIT
 
 ## Final Deliverables Checklist
 
-### Milestone 2 Complete When:
+### ✅ Milestone 2 Complete!
 
 **Backend:**
-- [ ] Express server runs on port 3001
-- [ ] Claude API integration works
-- [ ] Web search tool enabled
-- [ ] Returns 20 real activities
-- [ ] All activities have 3-5 sentence descriptions
-- [ ] Map links generated correctly
-- [ ] Error handling works
-- [ ] Environment variables configured
+- [x] Express server runs on port 3001
+- [x] Claude API integration works
+- [x] Web search tool enabled
+- [x] Returns 20 real activities
+- [x] All activities have 3-5 sentence descriptions
+- [x] Map links generated correctly (Google + Apple)
+- [x] Error handling works
+- [x] Environment variables configured
+- [x] Streaming API for reliability
+- [x] Exponential backoff for rate limits
+- [x] Prompt caching for cost savings
+- [x] Event date and type fields
 
 **Frontend:**
-- [ ] Calls backend API instead of dummy data
-- [ ] Displays real search results
-- [ ] Shows 3-5 sentence descriptions for each activity
-- [ ] Loading state during API calls
-- [ ] Error handling with retry
-- [ ] All links work (website, maps)
-- [ ] Mobile and desktop responsive
+- [x] Calls backend API instead of dummy data
+- [x] Displays real search results
+- [x] Shows 3-5 sentence descriptions for each activity
+- [x] Loading state during API calls
+- [x] Error handling with retry
+- [x] All links work (website, maps)
+- [x] Mobile and desktop responsive
+- [x] Event type filter checkboxes
+- [x] Event date/type badges on cards
 
 **Integration:**
-- [ ] End-to-end flow works
-- [ ] Can run both servers with one command
-- [ ] No CORS errors
-- [ ] No TypeScript errors
-- [ ] No console errors
+- [x] End-to-end flow works
+- [x] Can run both servers with one command
+- [x] No CORS errors
+- [x] No TypeScript errors
+- [x] No console errors
 
 **Documentation:**
-- [ ] README updated with setup instructions
-- [ ] API documented
-- [ ] Environment variables explained
-- [ ] Code comments for complex logic
+- [x] README updated with setup instructions
+- [x] API documented
+- [x] Environment variables explained
+- [x] Code comments for complex logic
 
 ---
 
@@ -1796,21 +1802,426 @@ MIT
 
 ---
 
-## Next Steps (Milestone 3 Preview)
+---
+---
 
-After completing M2, you'll have:
-- ✅ Fully functional app with real AI-powered recommendations
-- ✅ Production-ready backend API
-- ✅ Beautiful, responsive UI
+# Milestone 3 Tasks - Polish & Deploy
 
-For Milestone 3 (optional enhancements):
-1. Deploy to production (Vercel + Railway/Render)
-2. Add user accounts and saved searches
-3. Activity favoriting and sharing
-4. Enhanced filtering (price range, category)
-5. Map view with pins for all activities
-6. Review integration (Google Reviews API)
+## Goal: Production-Ready Application (8-10 hours)
 
 ---
 
-Good luck with Milestone 2! 🚀
+## Development Environment Tasks
+
+### Task 1: SSL/HTTPS for Local Development
+**Estimated Time:** 30 minutes
+
+**Files:**
+- `backend/src/server.ts`
+- `client/vite.config.ts`
+- `backend/certs/` (new directory for certificates)
+
+**Requirements:**
+- Generate self-signed SSL certificates for localhost
+- Configure Express to serve HTTPS
+- Configure Vite dev server for HTTPS
+- Update API URLs to use `https://`
+
+**Why SSL in Development?**
+- Mirrors production environment closely
+- Required for some browser APIs (geolocation, service workers, WebRTC)
+- Catches mixed-content issues early
+- Builds better security habits
+
+**Implementation Steps:**
+1. Install mkcert: `choco install mkcert` (Windows) or `brew install mkcert` (Mac)
+2. Create local CA: `mkcert -install`
+3. Generate certs: `mkcert localhost 127.0.0.1 ::1`
+4. Move certs to `backend/certs/`
+5. Update Express to use HTTPS with certs
+6. Update Vite config for HTTPS
+7. Update `.env` files with HTTPS URLs
+
+**Express HTTPS Setup:**
+```typescript
+import https from 'https';
+import fs from 'fs';
+
+const options = {
+  key: fs.readFileSync('./certs/localhost-key.pem'),
+  cert: fs.readFileSync('./certs/localhost.pem'),
+};
+
+https.createServer(options, app).listen(PORT, () => {
+  console.log(`🔒 HTTPS Server running on https://localhost:${PORT}`);
+});
+```
+
+**Vite HTTPS Setup:**
+```typescript
+// vite.config.ts
+export default defineConfig({
+  server: {
+    https: {
+      key: './certs/localhost-key.pem',
+      cert: './certs/localhost.pem',
+    },
+  },
+});
+```
+
+**Acceptance Criteria:**
+- [ ] Local certificates generated with mkcert
+- [ ] Backend serves on https://localhost:3001
+- [ ] Frontend serves on https://localhost:5174
+- [ ] No browser security warnings (trusted cert)
+- [ ] Geolocation API still works
+- [ ] API calls work over HTTPS
+
+---
+
+### Task 2: LAN Network Accessibility
+**Estimated Time:** 20 minutes
+
+**Files:**
+- `backend/src/server.ts`
+- `client/vite.config.ts`
+- `package.json` (scripts)
+
+**Requirements:**
+- Bind servers to `0.0.0.0` (all network interfaces)
+- Display local IP address on startup
+- Configure CORS for LAN access
+- Update npm scripts with `--host` flag
+
+**Why LAN Accessibility?**
+- Test on mobile devices on the same WiFi
+- Share with team members locally
+- Test cross-device compatibility
+- No deployment needed for demos
+
+**Implementation:**
+
+**Express (already done in server.ts):**
+```typescript
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
+  // Also show LAN IP
+  const networkInterfaces = require('os').networkInterfaces();
+  // Find and display local IP
+});
+```
+
+**Vite (package.json script):**
+```json
+"scripts": {
+  "dev": "vite --host"
+}
+```
+
+**Display IP Helper:**
+```typescript
+import os from 'os';
+
+function getLocalIP(): string {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name] || []) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return 'localhost';
+}
+```
+
+**Firewall Notes (Windows):**
+- May need to allow Node.js through Windows Firewall
+- Run: `netsh advfirewall firewall add rule name="Node.js" dir=in action=allow program="C:\Program Files\nodejs\node.exe" enable=yes`
+
+**Acceptance Criteria:**
+- [ ] Backend accessible from other LAN devices
+- [ ] Frontend accessible from other LAN devices
+- [ ] Local IP displayed on server startup
+- [ ] CORS allows LAN IP origins
+- [ ] Mobile device can access the app
+
+---
+
+## Backend Polish Tasks
+
+### Task 3: Response Caching
+**Estimated Time:** 45 minutes
+
+**File:** `backend/src/services/cacheService.ts`
+
+**Requirements:**
+- Cache identical searches to reduce API costs
+- 10-minute TTL (time to live)
+- Cache key based on all search parameters
+- Return cached response with `cached: true` flag
+
+**Implementation:**
+- Create in-memory cache with Map
+- Hash search params for cache key
+- Check cache before calling Claude API
+- Store formatted activities in cache
+
+**Acceptance Criteria:**
+- [ ] Identical searches return cached data
+- [ ] Cache expires after 10 minutes
+- [ ] Cached responses marked with `cached: true`
+- [ ] Cache doesn't break error handling
+
+---
+
+### Task 4: Input Validation & Sanitization
+**Estimated Time:** 30 minutes
+
+**File:** `backend/src/routes/search.ts`
+
+**Requirements:**
+- Validate city name format
+- Parse and validate kids ages
+- Enforce max distance limits (1-500 miles)
+- Sanitize text inputs to prevent injection
+
+**Acceptance Criteria:**
+- [ ] Invalid city names rejected
+- [ ] Ages parsed correctly (handles "5, 8" and "3-7")
+- [ ] Distance limited to reasonable range
+- [ ] Special characters sanitized
+
+---
+
+### Task 5: Rate Limiting
+**Estimated Time:** 30 minutes
+
+**File:** `backend/src/middleware/rateLimiter.ts`
+
+**Requirements:**
+- Limit requests per IP address
+- 10 requests per minute per IP
+- Return 429 with retry-after header
+
+**Implementation:**
+- Use `express-rate-limit` package
+- Configure for /api/search endpoint
+- Add to server.ts middleware
+
+**Acceptance Criteria:**
+- [ ] Rate limit enforced per IP
+- [ ] 429 response with retry-after header
+- [ ] Doesn't affect health endpoint
+
+---
+
+## Frontend Polish Tasks
+
+### Task 6: Enhanced Loading UX
+**Estimated Time:** 30 minutes
+
+**File:** `client/src/components/LoadingState.tsx`
+
+**Requirements:**
+- Skeleton cards instead of spinner
+- Progress indicator (searching... found X results...)
+- Estimated time remaining
+
+**Acceptance Criteria:**
+- [ ] Skeleton cards show during loading
+- [ ] Progress messages update
+- [ ] Smooth transition to results
+
+---
+
+### Task 7: Save Search to LocalStorage
+**Estimated Time:** 30 minutes
+
+**Files:** `client/src/components/SearchForm.tsx`, `client/src/hooks/useLocalStorage.ts`
+
+**Requirements:**
+- Remember last search parameters
+- Pre-fill form on page load
+- Clear button to reset
+
+**Acceptance Criteria:**
+- [ ] Form pre-fills with last search
+- [ ] Persists across browser sessions
+- [ ] Clear button works
+
+---
+
+### Task 8: Improve Mobile Experience
+**Estimated Time:** 30 minutes
+
+**Files:** Various component files
+
+**Requirements:**
+- Touch-friendly buttons
+- Swipe gestures (optional)
+- Better spacing on small screens
+- Collapsible form on results view
+
+**Acceptance Criteria:**
+- [ ] Buttons are at least 44px touch target
+- [ ] Form collapses after search on mobile
+- [ ] No horizontal scroll issues
+
+---
+
+## Deployment Tasks
+
+### Task 9: Deploy Frontend to Vercel
+**Estimated Time:** 30 minutes
+
+**Requirements:**
+- Connect GitHub repo to Vercel
+- Configure environment variables
+- Set up custom domain (optional)
+- Enable automatic deployments
+
+**Steps:**
+1. Push code to GitHub
+2. Import project in Vercel dashboard
+3. Add `VITE_API_URL` environment variable
+4. Deploy and test
+
+**Acceptance Criteria:**
+- [ ] Frontend accessible via Vercel URL
+- [ ] Environment variables configured
+- [ ] Automatic deploys on push to main
+
+---
+
+### Task 10: Deploy Backend to Railway/Render
+**Estimated Time:** 45 minutes
+
+**Requirements:**
+- Deploy Express server
+- Configure environment variables
+- Set up health checks
+- Enable auto-scaling (optional)
+
+**Steps:**
+1. Create Railway/Render account
+2. Connect GitHub repo
+3. Add environment variables:
+   - `ANTHROPIC_API_KEY`
+   - `PORT`
+   - `NODE_ENV=production`
+   - `FRONTEND_URL` (Vercel URL for CORS)
+4. Deploy and test
+
+**Acceptance Criteria:**
+- [ ] Backend accessible via Railway/Render URL
+- [ ] Health endpoint returns 200
+- [ ] CORS allows frontend domain
+- [ ] API key secured
+
+---
+
+### Task 11: Production Environment Configuration
+**Estimated Time:** 30 minutes
+
+**Files:** `backend/src/server.ts`, `client/.env.production`
+
+**Requirements:**
+- Update CORS for production domains
+- Configure production API URL in frontend
+- Ensure HTTPS for all connections
+- Remove debug logging in production
+
+**Acceptance Criteria:**
+- [ ] CORS configured for production URLs
+- [ ] Frontend uses production API URL
+- [ ] Debug logs disabled in production
+- [ ] All connections use HTTPS
+
+---
+
+### Task 12: Error Monitoring & Logging
+**Estimated Time:** 45 minutes
+
+**Requirements:**
+- Add error tracking (Sentry or similar)
+- Structured logging for debugging
+- Performance monitoring
+
+**Options:**
+- Sentry (free tier available)
+- LogRocket for frontend
+- Railway/Render built-in logging
+
+**Acceptance Criteria:**
+- [ ] Errors captured and reported
+- [ ] Can debug production issues
+- [ ] Performance metrics visible
+
+---
+
+## Final Deliverables Checklist
+
+### Milestone 3 Complete When:
+
+**Development Environment (Tasks 1-2):**
+- [ ] SSL/HTTPS working in local development
+- [ ] LAN network accessibility working
+
+**Backend Polish (Tasks 3-5):**
+- [ ] Response caching implemented
+- [ ] Input validation complete
+- [ ] Rate limiting active
+
+**Frontend Polish (Tasks 6-8):**
+- [ ] Enhanced loading states
+- [ ] LocalStorage for last search
+- [ ] Mobile experience optimized
+
+**Deployment (Tasks 9-12):**
+- [ ] Frontend deployed to Vercel
+- [ ] Backend deployed to Railway/Render
+- [ ] Production environment configured
+- [ ] Error monitoring active
+
+**Testing:**
+- [ ] End-to-end works in production
+- [ ] Performance acceptable (<5s search)
+- [ ] Error handling graceful
+- [ ] Mobile tested on real device
+
+---
+
+## Time Breakdown - Milestone 3
+
+| Category | Time |
+|----------|------|
+| Development Environment (Tasks 1-2) | 50min |
+| Backend Polish (Tasks 3-5) | 1h 45min |
+| Frontend Polish (Tasks 6-8) | 1h 30min |
+| Deployment (Tasks 9-11) | 1h 45min |
+| Monitoring (Task 12) | 45min |
+| Testing & Bug Fixes | 1h |
+| **Total** | **7h 35min** |
+
+**Recommended:** Allow 8-9 hours for learning and debugging
+
+---
+
+## Post-Milestone 3 Enhancements (Future)
+
+Once deployed, consider these enhancements:
+- [ ] User accounts and authentication
+- [ ] Saved searches and favorites
+- [ ] Activity sharing via link
+- [ ] Map view with all activity pins
+- [ ] Price range filtering
+- [ ] Weather-aware suggestions
+- [ ] Email digest of weekly activities
+- [ ] Review integration (Google/Yelp)
+
+---
+
+Good luck with Milestone 3! 🚀
