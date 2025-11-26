@@ -1,6 +1,27 @@
 import type { SearchFormData, Activity } from '../types/index';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Dynamically determine API URL based on current hostname
+// This allows the app to work both on localhost and on LAN
+function getApiBaseUrl(): string {
+  // If VITE_API_URL is set and we're on localhost, use it
+  if (import.meta.env.VITE_API_URL && window.location.hostname === 'localhost') {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  // Otherwise, use the current hostname with backend port
+  const protocol = window.location.protocol; // http: or https:
+  const hostname = window.location.hostname; // localhost or 192.168.88.36
+  const backendPort = 3001;
+
+  return `${protocol}//${hostname}:${backendPort}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Debug: Log the API URL to console
+console.log('🔍 API Base URL:', API_BASE_URL);
+console.log('🌐 Current hostname:', window.location.hostname);
+console.log('🔒 Current protocol:', window.location.protocol);
 
 export class APIError extends Error {
   constructor(

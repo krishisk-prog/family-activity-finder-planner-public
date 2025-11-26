@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:platform.claude.com)"
+      "WebFetch(domain:platform.claude.com)",
+      "Bash(where:*)",
+      "Bash(nul)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(ipconfig:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

@@ -4,4 +4,6 @@ dist/
 .env.local
 *.log
 .DS_Store
-node_modules/
+
+# SSL certificates (contains private keys - never commit!)
+certs/

@@ -2,7 +2,25 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import https from 'https';
+import http from 'http';
+import fs from 'fs';
+import os from 'os';
 import searchRouter from './routes/search';
+
+// Helper function to get local IP address for LAN accessibility
+function getLocalIP(): string {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name] || []) {
+      // Skip internal and non-IPv4 addresses
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return 'localhost';
+}
 
 // Load .env from backend directory
 // __dirname will be backend/src, so we go up one level to backend/
@@ -15,8 +33,32 @@ console.log('🔧 Initializing Express app...');
 console.log('🔧 Environment:', process.env.NODE_ENV);
 console.log('🔧 Port:', PORT);
 
+// Get local IP for CORS and display
+const localIP = getLocalIP();
+
+// CORS configuration - allow localhost and LAN access
+// In development, allow all origins for easier testing
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'development'
+    ? true  // Allow all origins in development
+    : [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'https://localhost:5173',
+        'https://localhost:5174',
+        `http://${localIP}:5173`,
+        `http://${localIP}:5174`,
+        `https://${localIP}:5173`,
+        `https://${localIP}:5174`,
+      ],
+  credentials: true,
+};
+
+console.log('🌐 CORS enabled for:', process.env.NODE_ENV === 'development' ? 'ALL origins (dev mode)' : 'specified origins');
+console.log('📍 Local IP detected:', localIP);
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Request logging - THIS SHOULD FIRE FOR EVERY REQUEST
@@ -56,12 +98,51 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 
 const HOST = process.env.HOST || '0.0.0.0';
+const USE_HTTPS = process.env.USE_HTTPS === 'true';
 
-const server = app.listen(Number(PORT), HOST, () => {
-  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
-  console.log(`📊 Health check: http://${HOST}:${PORT}/health`);
-  console.log('✅ Server is listening and ready to accept requests');
-});
+// SSL certificate paths
+const certsPath = path.join(__dirname, '..', 'certs');
+const keyPath = path.join(certsPath, 'localhost-key.pem');
+const certPath = path.join(certsPath, 'localhost.pem');
+
+let server: http.Server | https.Server;
+
+if (USE_HTTPS && fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+  // HTTPS server with SSL certificates
+  const sslOptions = {
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath),
+  };
+
+  server = https.createServer(sslOptions, app);
+  server.listen(Number(PORT), HOST, () => {
+    console.log('');
+    console.log('🔒 HTTPS Server running!');
+    console.log('');
+    console.log('   Local:   https://localhost:' + PORT);
+    console.log('   Network: https://' + localIP + ':' + PORT);
+    console.log('');
+    console.log('📊 Health check: https://localhost:' + PORT + '/health');
+    console.log('✅ Server is listening and ready to accept requests');
+  });
+} else {
+  // HTTP server (fallback or when SSL not configured)
+  server = app.listen(Number(PORT), HOST, () => {
+    console.log('');
+    console.log('🚀 HTTP Server running!');
+    console.log('');
+    console.log('   Local:   http://localhost:' + PORT);
+    console.log('   Network: http://' + localIP + ':' + PORT);
+    console.log('');
+    console.log('📊 Health check: http://localhost:' + PORT + '/health');
+    console.log('✅ Server is listening and ready to accept requests');
+
+    if (!USE_HTTPS) {
+      console.log('');
+      console.log('💡 Tip: Set USE_HTTPS=true in .env to enable HTTPS');
+    }
+  });
+}
 
 // Prevent the process from exiting
 server.on('close', () => {
