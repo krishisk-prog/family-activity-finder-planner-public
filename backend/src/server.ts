@@ -6,6 +6,7 @@ import https from 'https';
 import http from 'http';
 import fs from 'fs';
 import os from 'os';
+import rateLimit from 'express-rate-limit';
 import searchRouter from './routes/search';
 
 // Helper function to get local IP address for LAN accessibility
@@ -71,6 +72,28 @@ app.use((req, res, next) => {
   next();
 });
 
+// Rate limiting - Prevent API abuse
+// Limit: 10 requests per minute per IP address
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 10, // Limit each IP to 10 requests per windowMs
+  message: {
+    error: 'Too many requests',
+    message: 'You have exceeded the rate limit. Please try again in a minute.',
+  },
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+  handler: (req, res) => {
+    console.log(`🚫 Rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: 'Too many requests',
+      message: 'You have exceeded the rate limit. Please try again in a minute.',
+    });
+  },
+});
+
+console.log('🛡️  Rate limiting enabled: 10 requests/minute per IP');
+
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.json({
@@ -80,8 +103,8 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-// API routes
-app.use('/api', searchRouter);
+// API routes - protected by rate limiter
+app.use('/api', apiLimiter, searchRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

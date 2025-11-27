@@ -1,10 +1,13 @@
 import express, { Request, Response } from 'express';
-import { searchActivities, type SearchParams, EVENT_TYPES, type EventType } from '../services/claudeService';
-import { formatActivities } from '../services/activityFormatter';
+import { searchActivities, type SearchParams, type EventType } from '../services/claudeService';
+import { formatActivities, type FormattedActivity } from '../services/activityFormatter';
+import { validateSearchRequest } from '../middleware/validateSearch';
+import { activityCache, generateCacheKey } from '../services/cacheService';
 
 const router = express.Router();
 
-router.post('/search', async (req: Request, res: Response) => {
+// Apply validation middleware to search endpoint
+router.post('/search', validateSearchRequest, async (req: Request, res: Response) => {
   console.log('📥 Search request received');
   try {
     const { city, kidsAges, availability, maxDistance, preferences, eventTypes } = req.body;
@@ -17,37 +20,27 @@ router.post('/search', async (req: Request, res: Response) => {
       eventTypes: eventTypes || 'all',
     });
 
-    // Validate required fields
-    if (!city || !kidsAges || !availability || !maxDistance) {
-      console.log('❌ Validation failed: Missing required fields');
-      return res.status(400).json({
-        error: 'Missing required fields',
-        required: ['city', 'kidsAges', 'availability', 'maxDistance'],
-      });
-    }
+    // Generate cache key
+    const cacheKey = generateCacheKey({
+      city,
+      kidsAges,
+      availability,
+      maxDistance,
+      preferences,
+      eventTypes,
+    });
 
-    // Validate data types
-    if (typeof city !== 'string' || typeof kidsAges !== 'string' ||
-        typeof availability !== 'string' || typeof maxDistance !== 'string') {
-      console.log('❌ Validation failed: Invalid field types');
-      return res.status(400).json({
-        error: 'Invalid field types',
+    // Check cache first
+    const cachedResults = activityCache.get(cacheKey);
+    if (cachedResults) {
+      console.log('✨ Returning cached results');
+      console.log(`💾 Cache stats: ${activityCache.size()} entries cached`);
+      return res.json({
+        success: true,
+        cached: true,
+        count: cachedResults.length,
+        activities: cachedResults,
       });
-    }
-
-    // Validate eventTypes if provided
-    let validatedEventTypes: EventType[] | undefined;
-    if (eventTypes) {
-      if (!Array.isArray(eventTypes)) {
-        return res.status(400).json({
-          error: 'eventTypes must be an array',
-        });
-      }
-      // Filter to only valid event types
-      validatedEventTypes = eventTypes.filter((type: string) =>
-        EVENT_TYPES.includes(type as EventType)
-      ) as EventType[];
-      console.log(`🎯 Filtering by event types: ${validatedEventTypes.join(', ')}`);
     }
 
     console.log(`🔍 Searching activities for: ${city}, Kids: ${kidsAges}`);
@@ -59,7 +52,7 @@ router.post('/search', async (req: Request, res: Response) => {
       availability,
       maxDistance,
       preferences: preferences || '',
-      eventTypes: validatedEventTypes,
+      eventTypes: eventTypes as EventType[],
     };
 
     console.log('🤖 Calling Claude service...');
@@ -69,8 +62,13 @@ router.post('/search', async (req: Request, res: Response) => {
     // Add map links and IDs
     const formattedActivities = formatActivities(activities, city);
 
+    // Store in cache for future requests
+    activityCache.set(cacheKey, formattedActivities);
+    console.log(`💾 Cached results for future requests (${activityCache.size()} total cached)`);
+
     res.json({
       success: true,
+      cached: false,
       count: formattedActivities.length,
       activities: formattedActivities,
     });
