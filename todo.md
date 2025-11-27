@@ -1813,8 +1813,9 @@ MIT
 
 ## Development Environment Tasks
 
-### Task 1: SSL/HTTPS for Local Development
+### ✅ Task 1: SSL/HTTPS for Local Development
 **Estimated Time:** 30 minutes
+**Status:** COMPLETED
 
 **Files:**
 - `backend/src/server.ts`
@@ -1871,28 +1872,31 @@ export default defineConfig({
 ```
 
 **Acceptance Criteria:**
-- [ ] Local certificates generated with mkcert
-- [ ] Backend serves on https://localhost:3001
-- [ ] Frontend serves on https://localhost:5174
-- [ ] No browser security warnings (trusted cert)
-- [ ] Geolocation API still works
-- [ ] API calls work over HTTPS
+- [x] Local certificates generated with mkcert
+- [x] Backend serves on https://localhost:3001
+- [x] Frontend serves on https://localhost:5174
+- [x] No browser security warnings (trusted cert)
+- [x] Geolocation API still works
+- [x] API calls work over HTTPS
 
 ---
 
-### Task 2: LAN Network Accessibility
+### ✅ Task 2: LAN Network Accessibility
 **Estimated Time:** 20 minutes
+**Status:** COMPLETED
 
 **Files:**
 - `backend/src/server.ts`
 - `client/vite.config.ts`
 - `package.json` (scripts)
+- `client/src/services/api.ts` (dynamic API URL detection)
 
 **Requirements:**
 - Bind servers to `0.0.0.0` (all network interfaces)
 - Display local IP address on startup
 - Configure CORS for LAN access
 - Update npm scripts with `--host` flag
+- Dynamic API URL detection for frontend
 
 **Why LAN Accessibility?**
 - Test on mobile devices on the same WiFi
@@ -1942,18 +1946,21 @@ function getLocalIP(): string {
 - Run: `netsh advfirewall firewall add rule name="Node.js" dir=in action=allow program="C:\Program Files\nodejs\node.exe" enable=yes`
 
 **Acceptance Criteria:**
-- [ ] Backend accessible from other LAN devices
-- [ ] Frontend accessible from other LAN devices
-- [ ] Local IP displayed on server startup
-- [ ] CORS allows LAN IP origins
-- [ ] Mobile device can access the app
+- [x] Backend accessible from other LAN devices
+- [x] Frontend accessible from other LAN devices
+- [x] Local IP displayed on server startup
+- [x] CORS allows LAN IP origins (development mode allows all)
+- [x] Mobile device can access the app
+- [x] Friendly domain support (family-activity.local)
+- [x] Windows Firewall configured for ports 3001 and 5174
 
 ---
 
 ## Backend Polish Tasks
 
-### Task 3: Response Caching
+### ✅ Task 3: Response Caching
 **Estimated Time:** 45 minutes
+**Status:** COMPLETED
 
 **File:** `backend/src/services/cacheService.ts`
 
@@ -1968,38 +1975,47 @@ function getLocalIP(): string {
 - Hash search params for cache key
 - Check cache before calling Claude API
 - Store formatted activities in cache
+- Automatic cleanup every 5 minutes
 
 **Acceptance Criteria:**
-- [ ] Identical searches return cached data
-- [ ] Cache expires after 10 minutes
-- [ ] Cached responses marked with `cached: true`
-- [ ] Cache doesn't break error handling
+- [x] Identical searches return cached data
+- [x] Cache expires after 10 minutes
+- [x] Cached responses marked with `cached: true`
+- [x] Cache doesn't break error handling
+- [x] Generic CacheService<T> class for reusability
+- [x] Cache stats logging
 
 ---
 
-### Task 4: Input Validation & Sanitization
+### ✅ Task 4: Input Validation & Sanitization
 **Estimated Time:** 30 minutes
+**Status:** COMPLETED
 
-**File:** `backend/src/routes/search.ts`
+**File:** `backend/src/middleware/validateSearch.ts`
 
 **Requirements:**
 - Validate city name format
 - Parse and validate kids ages
 - Enforce max distance limits (1-500 miles)
 - Sanitize text inputs to prevent injection
+- Validate event types
 
 **Acceptance Criteria:**
-- [ ] Invalid city names rejected
-- [ ] Ages parsed correctly (handles "5, 8" and "3-7")
-- [ ] Distance limited to reasonable range
-- [ ] Special characters sanitized
+- [x] Invalid city names rejected (2-100 chars, alphanumeric only)
+- [x] Ages parsed correctly (handles "5, 8" and "3-7")
+- [x] Distance limited to reasonable range (1-500 miles)
+- [x] Special characters sanitized (removes HTML tags, dangerous chars)
+- [x] Event types validated against enum
+- [x] Comprehensive error messages with field-specific details
+- [x] Middleware pattern for reusability
 
 ---
 
-### Task 5: Rate Limiting
+### ✅ Task 5: Rate Limiting
 **Estimated Time:** 30 minutes
+**Status:** COMPLETED
 
-**File:** `backend/src/middleware/rateLimiter.ts`
+**File:** `backend/src/server.ts`
 
 **Requirements:**
 - Limit requests per IP address
@@ -2008,13 +2024,16 @@ function getLocalIP(): string {
 
 **Implementation:**
 - Use `express-rate-limit` package
-- Configure for /api/search endpoint
-- Add to server.ts middleware
+- Configure for /api/* routes
+- Add to server.ts middleware chain
 
 **Acceptance Criteria:**
-- [ ] Rate limit enforced per IP
-- [ ] 429 response with retry-after header
-- [ ] Doesn't affect health endpoint
+- [x] Rate limit enforced per IP (10 requests/minute)
+- [x] 429 response with clear error message
+- [x] Standard RateLimit-* headers included
+- [x] Doesn't affect health endpoint
+- [x] Logs rate limit violations
+- [x] Applied globally to all /api routes
 
 ---
 
@@ -2167,13 +2186,16 @@ function getLocalIP(): string {
 ### Milestone 3 Complete When:
 
 **Development Environment (Tasks 1-2):**
-- [ ] SSL/HTTPS working in local development
-- [ ] LAN network accessibility working
+- [x] SSL/HTTPS working in local development
+- [x] LAN network accessibility working
+- [x] Friendly domain support (family-activity.local)
+- [x] Windows Firewall configured
+- [x] Dynamic API URL detection
 
 **Backend Polish (Tasks 3-5):**
-- [ ] Response caching implemented
-- [ ] Input validation complete
-- [ ] Rate limiting active
+- [x] Response caching implemented (10-min TTL)
+- [x] Input validation complete (comprehensive middleware)
+- [x] Rate limiting active (10 req/min per IP)
 
 **Frontend Polish (Tasks 6-8):**
 - [ ] Enhanced loading states
