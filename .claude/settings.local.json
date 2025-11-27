@@ -5,7 +5,10 @@
       "Bash(npm init:*)",
       "Bash(timeout 10 npm run dev)",
       "Bash(npx ts-node:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(powershell -Command \"(Get-Content ''C:\\Users\\krish\\Apps\\family-activity-finder-planner\\todo.md'').Count\")",
+      "Bash(powershell -Command \"Write-Host ''File Size Comparison:''; Write-Host ''==================''; Get-ChildItem ''C:\\Users\\krish\\Apps\\family-activity-finder-planner'' -Filter ''*.md'' | Where-Object {$_Name -match ''todo|CHANGELOG|MILESTONES''} | Select-Object Name, @{Name=''Size (KB)'';Expression={[math]::Round($_Length/1KB, 2)}}, @{Name=''Lines'';Expression={(Get-Content $_FullName).Count}} | Format-Table -AutoSize\")",
+      "Bash(powershell -Command \"(Get-Item todo.md).Length / 1KB\")"
     ],
     "deny": [],
     "ask": []

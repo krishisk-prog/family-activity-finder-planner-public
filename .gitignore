@@ -18,6 +18,16 @@ build/
 # SSL certificates (PRIVATE - never commit!)
 **/certs/
 certs/
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+*.p12
+*.pfx
+*.p12
+*.pfx
 
 # Logs
 *.log
