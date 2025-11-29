@@ -37,21 +37,30 @@ console.log('🔧 Port:', PORT);
 // Get local IP for CORS and display
 const localIP = getLocalIP();
 
-// CORS configuration - allow localhost and LAN access
+// CORS configuration - allow localhost, LAN access, and Railway production
 // In development, allow all origins for easier testing
+const productionOrigins = [
+  // Local development
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://localhost:5173',
+  'https://localhost:5174',
+  // LAN access
+  `http://${localIP}:5173`,
+  `http://${localIP}:5174`,
+  `https://${localIP}:5173`,
+  `https://${localIP}:5174`,
+];
+
+// Add Railway frontend URL if it exists
+if (process.env.FRONTEND_URL) {
+  productionOrigins.push(process.env.FRONTEND_URL);
+}
+
 const corsOptions = {
   origin: process.env.NODE_ENV === 'development'
     ? true  // Allow all origins in development
-    : [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'https://localhost:5173',
-        'https://localhost:5174',
-        `http://${localIP}:5173`,
-        `http://${localIP}:5174`,
-        `https://${localIP}:5173`,
-        `https://${localIP}:5174`,
-      ],
+    : productionOrigins,
   credentials: true,
 };
 
