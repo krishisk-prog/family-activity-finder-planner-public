@@ -1,7 +1,7 @@
 # Todo - Family Activity Finder
 
 **Status**: Milestone 3 - Polish & Production Ready (In Progress)
-**Last Updated**: November 27, 2025
+**Last Updated**: November 29, 2025
 
 ---
 
@@ -10,72 +10,19 @@
 ### ✅ Completed (See CHANGELOG.md for details)
 - ✅ Milestone 1: UI with Dummy Data
 - ✅ Milestone 2: Claude API Integration
-- ✅ Milestone 3 Tasks 1-5:
+- ✅ Milestone 3 Tasks 1-8:
   - SSL/HTTPS for local development
   - LAN network accessibility
   - Response caching (10-min TTL)
   - Input validation & sanitization
   - Rate limiting (10 req/min per IP)
+  - **Enhanced loading UX** (skeleton cards + progress bar)
+  - **LocalStorage persistence** (auto-save/restore searches)
+  - **Mobile experience** (collapsible form + touch-friendly UI)
 
 ---
 
-## 🎯 Active: Milestone 3 Remaining Tasks
-
-### Frontend Polish (Tasks 6-8)
-
-#### ⏳ Task 6: Enhanced Loading UX
-**Estimated Time:** 30 minutes
-**Status:** NOT STARTED
-
-**File:** `client/src/components/LoadingState.tsx`
-
-**Requirements:**
-- Skeleton cards instead of spinner
-- Progress indicator (searching... found X results...)
-- Estimated time remaining
-
-**Acceptance Criteria:**
-- [ ] Skeleton cards show during loading
-- [ ] Progress messages update
-- [ ] Smooth transition to results
-
----
-
-#### ⏳ Task 7: Save Search to LocalStorage
-**Estimated Time:** 30 minutes
-**Status:** NOT STARTED
-
-**Files:** `client/src/components/SearchForm.tsx`, `client/src/hooks/useLocalStorage.ts`
-
-**Requirements:**
-- Remember last search parameters
-- Pre-fill form on page load
-- Clear button to reset
-
-**Acceptance Criteria:**
-- [ ] Form pre-fills with last search
-- [ ] Persists across browser sessions
-- [ ] Clear button works
-
----
-
-#### ⏳ Task 8: Improve Mobile Experience
-**Estimated Time:** 30 minutes
-**Status:** NOT STARTED
-
-**Files:** Various component files
-
-**Requirements:**
-- Touch-friendly buttons (min 44px touch target)
-- Better spacing on small screens
-- Collapsible form on results view (mobile only)
-
-**Acceptance Criteria:**
-- [ ] Buttons are at least 44px touch target
-- [ ] Form collapses after search on mobile
-- [ ] No horizontal scroll issues
-
----
+## 🎯 Active: Milestone 3 Deployment Tasks
 
 ### Deployment (Tasks 9-12)
 
@@ -174,9 +121,9 @@
 ## Milestone 3 Completion Checklist
 
 ### Frontend Polish (Tasks 6-8)
-- [ ] Enhanced loading states
-- [ ] LocalStorage for last search
-- [ ] Mobile experience optimized
+- [x] Enhanced loading states
+- [x] LocalStorage for last search
+- [x] Mobile experience optimized
 
 ### Deployment (Tasks 9-12)
 - [ ] Frontend deployed to Vercel
@@ -185,22 +132,22 @@
 - [ ] Error monitoring active
 
 ### Final Testing
+- [x] Local testing complete (desktop + mobile)
 - [ ] End-to-end works in production
 - [ ] Performance acceptable (<5s search)
 - [ ] Error handling graceful
-- [ ] Mobile tested on real device
 
 ---
 
 ## Time Estimate
 
-| Category | Remaining Time |
-|----------|---------------|
-| Frontend Polish (Tasks 6-8) | 1h 30min |
-| Deployment (Tasks 9-11) | 1h 45min |
-| Monitoring (Task 12) | 45min |
-| Testing & Bug Fixes | 1h |
-| **Total** | **~5 hours** |
+| Category | Status | Time |
+|----------|--------|------|
+| Frontend Polish (Tasks 6-8) | ✅ Complete | 1h 30min |
+| Deployment (Tasks 9-11) | ⏳ Pending | 1h 45min |
+| Monitoring (Task 12) | ⏳ Pending | 45min |
+| Testing & Bug Fixes | ⏳ Pending | 1h |
+| **Remaining** | | **~3.5 hours** |
 
 ---
 

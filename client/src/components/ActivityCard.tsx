@@ -52,33 +52,43 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
         )}
       </div>
 
-      {/* Links */}
-      <div className="flex flex-wrap gap-3 mb-4 text-sm">
+      {/* Links - Compact on desktop, touch-friendly on mobile */}
+      <div className="flex flex-wrap items-center gap-1 md:gap-3 mb-4 text-sm">
         <a
           href={activity.website}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:underline font-medium"
+          className="inline-flex items-center gap-1 text-primary hover:bg-blue-50 md:hover:bg-transparent md:hover:underline font-medium px-3 py-2 md:px-0 md:py-0 rounded-md md:rounded-none transition-colors min-h-[44px] md:min-h-0"
         >
-          Website
+          <svg className="w-4 h-4 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+          </svg>
+          <span>Website</span>
         </a>
-        <span className="text-gray-400">|</span>
+        <span className="text-gray-400 hidden md:inline">|</span>
         <a
           href={activity.googleMapsLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:underline font-medium"
+          className="inline-flex items-center gap-1 text-primary hover:bg-blue-50 md:hover:bg-transparent md:hover:underline font-medium px-3 py-2 md:px-0 md:py-0 rounded-md md:rounded-none transition-colors min-h-[44px] md:min-h-0"
         >
-          Google Maps
+          <svg className="w-4 h-4 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Google Maps</span>
         </a>
-        <span className="text-gray-400">|</span>
+        <span className="text-gray-400 hidden md:inline">|</span>
         <a
           href={activity.appleMapsLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:underline font-medium"
+          className="inline-flex items-center gap-1 text-primary hover:bg-blue-50 md:hover:bg-transparent md:hover:underline font-medium px-3 py-2 md:px-0 md:py-0 rounded-md md:rounded-none transition-colors min-h-[44px] md:min-h-0"
         >
-          Apple Maps
+          <svg className="w-4 h-4 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
+          <span>Apple Maps</span>
         </a>
       </div>
 

@@ -1,19 +1,28 @@
 import { useState, useEffect, FormEvent } from 'react';
 import type { SearchFormData, EventType } from '../types/index.ts';
 import { EVENT_TYPES, EVENT_TYPE_LABELS } from '../types/index.ts';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface SearchFormProps {
   onSubmit: (data: SearchFormData) => void;
 }
 
+const STORAGE_KEY = 'family-activity-last-search';
+
 export default function SearchForm({ onSubmit }: SearchFormProps) {
+  // Load saved search from localStorage
+  const [savedSearch, setSavedSearch, clearSavedSearch] = useLocalStorage<SearchFormData | null>(
+    STORAGE_KEY,
+    null
+  );
+
   const [formData, setFormData] = useState<SearchFormData>({
     city: '',
-    kidsAges: '',
-    availability: '',
-    maxDistance: '',
-    preferences: '',
-    eventTypes: [], // Empty means show all types
+    kidsAges: savedSearch?.kidsAges || '',
+    availability: savedSearch?.availability || '',
+    maxDistance: savedSearch?.maxDistance || '',
+    preferences: savedSearch?.preferences || '',
+    eventTypes: savedSearch?.eventTypes || [], // Empty means show all types
   });
 
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
@@ -99,17 +108,47 @@ export default function SearchForm({ onSubmit }: SearchFormProps) {
         }));
         setIsDetectingLocation(false);
       } catch (error) {
-        setLocationError('Unable to detect location. Please enter manually.');
+        // If location detection completely fails, use saved city if available
+        if (savedSearch?.city) {
+          setFormData((prev) => ({
+            ...prev,
+            city: savedSearch.city,
+          }));
+          setLocationError('Using previously saved location. You can edit if needed.');
+        } else {
+          setLocationError('Unable to detect location. Please enter manually.');
+        }
         setIsDetectingLocation(false);
       }
     };
 
     detectLocation();
   }, []); // Run once on mount
+  // Note: Empty dependency array is correct - we only want to run once
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Save search to localStorage for next time
+    setSavedSearch(formData);
+
     onSubmit(formData);
+  };
+
+  const handleClearSaved = () => {
+    if (confirm('Clear saved search data? You\'ll need to re-enter your preferences next time.')) {
+      clearSavedSearch();
+      // Reset form to defaults (except city which may be auto-detected)
+      setFormData((prev) => ({
+        city: prev.city, // Keep current city (might be auto-detected)
+        kidsAges: '',
+        availability: '',
+        maxDistance: '',
+        preferences: '',
+        eventTypes: [],
+      }));
+    }
   };
 
   const handleChange = (
@@ -296,6 +335,36 @@ export default function SearchForm({ onSubmit }: SearchFormProps) {
         >
           Find Activities
         </button>
+
+        {/* Clear Saved Search Button */}
+        {savedSearch && (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handleClearSaved}
+              className="w-full text-sm text-gray-600 hover:text-gray-800 py-2 px-4 rounded-md hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Clear Saved Search
+            </button>
+            <p className="text-xs text-gray-500 text-center mt-1">
+              Your search preferences are saved automatically
+            </p>
+          </div>
+        )}
       </div>
     </form>
   );
